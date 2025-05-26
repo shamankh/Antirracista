@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Trilha Antirracista Digital</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        .intro, .boas-vindas {
+            background: #1a202c;
+            color: #fff;
+            padding: 32px 10px 16px 10px;
+            text-align: center;
+            font-size: 1.3em;
+        }
+        .creditos {
+            font-size: 1em;
+            margin-top: 18px;
+            color: #bee3f8;
+            font-weight: bold;
+            letter-spacing: 0.02em;
+        }
+        .escola {
+            font-size: 1em;
+            margin-top: 4px;
+            color: #d3f9d8;
+            font-weight: bold;
+            letter-spacing: 0.01em;
+        }
+        .boas-vindas {
+            background: #234e52;
+            color: #fff;
+            font-size: 1.08em;
+            padding: 24px 10px 34px 10px;
+        }
+        .btn-comecar, .virar-carta-btn {
+            display: block;
+            margin: 22px auto 0 auto;
+            background: #38b2ac;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 48px;
+            font-size: 1.25em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 10px #0001;
+            transition: background 0.15s;
+        }
+        .btn-comecar:active, .virar-carta-btn:active {
+            background: #234e52;
+        }
+        .tela-jogo { display: none; }
+        .trilha-board {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 60px;
+            margin: 48px 0 32px 0;
+            position: relative;
+            flex-wrap: wrap;
+        }
+        .autor-retrato {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 330px;
+            max-width: 340px;
+        }
+        .autor-retrato img {
+            width: 320px;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 20px;
+            background: #fff;
+            margin-bottom: 12px;
+            border: 4.5px solid #4299e1;
+            box-shadow: 0 4px 24px #0003;
+            padding: 0;
+        }
+        .autor-retrato h3 {
+            font-size: 1.18em;
+            color: #234e52;
+            text-align: center;
+            margin: 8px 0 6px 0;
+            width: 320px;
+            background: #e6fffa;
+            border-radius: 10px;
+            padding: 4px 0;
+        }
+        .trilha-espacos {
+            display: flex;
+            flex-direction: row;
+            gap: 22px;
+            margin: 0 12px;
+        }
+        .trilha-quadrado {
+            width: 64px;
+            height: 64px;
+            background: #fff;
+            border: 3px dashed #48bb78;
+            border-radius: 18px;
+            box-shadow: 0 1px 8px #0001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: background 0.2s, border 0.2s;
+            font-size: 2.1em;
+        }
+        .trilha-quadrado.filled {
+            background: #38b2ac;
+            border: 3px solid #38b2ac;
+            color: #fff;
+            font-size: 2.5em;
+            font-weight: bold;
+            justify-content: center;
+            align-items: center;
+        }
+        .trilha-quadrado.filled::after {
+            content: "✔";
+            color: #fff;
+            font-size: 1.6em;
+        }
+        .trilha-quadrado.active {
+            background: #fffde7;
+            border-color: #ecc94b;
+        }
+        .carta-central-area {
+            display: flex;
+            justify-content: center;
+            margin: 35px 0 12px 0;
+        }
+        .carta-baralho {
+            background: #fffbea;
+            color: #222;
+            padding: 32px 34px 28px 34px;
+            border-radius: 18px;
+            font-size: 1.22em;
+            box-shadow: 0 4px 28px #ecc94b88;
+            border: 3px solid #ecc94b;
+            min-width: 290px;
+            max-width: 460px;
+            margin: 0 auto;
+            text-align: center;
+            user-select: none;
+            cursor: grab;
+            position: relative;
+            transition: box-shadow 0.22s;
+            z-index: 10;
+            display: none;
+        }
+        .carta-baralho.show {
+            display: block;
+            animation: aparecerCarta 0.35s;
+        }
+        @keyframes aparecerCarta {
+            from { transform: rotateY(80deg) scale(0.85); opacity: 0;}
+            to { transform: rotateY(0deg) scale(1); opacity: 1;}
+        }
+        .virar-carta-btn {
+            display: block;
+            margin: 18px auto 0 auto;
+            background: #38b2ac;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 40px;
+            font-size: 1.13em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 10px #0001;
+            transition: background 0.15s;
+        }
+        .virar-carta-btn:active {
+            background: #234e52;
+        }
+        .carta-baralho img {
+            width: 60px;
+            height: 90px;
+            display: block;
+            margin: -18px auto 6px auto;
+            opacity: 0.6;
+        }
+        .parabens {
+            text-align: center;
+            background: #38b2ac;
+            color: #fff;
+            padding: 22px;
+            border-radius: 18px;
+            font-size: 1.3em;
+            margin: 24px auto;
+            width: 480px;
+            display: none;
+        }
+        #modal-contexto {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            background: rgba(30, 41, 59, 0.85); 
+            z-index: 9999; 
+            align-items: center; 
+            justify-content: center;
+        }
+        #modal-contento-inner {
+            background: #fff;
+            border-radius: 22px;
+            max-width: 650px;
+            min-width: 340px;
+            padding: 32px 28px;
+            box-shadow: 0 8px 40px #0004;
+            font-size: 1.18em;
+            color: #222;
+            text-align: left;
+            position: relative;
+        }
+        .frase-modal {
+            color: #234e52;
+            font-size: 1.1em;
+            font-weight: bold;
+            background: #fffbea;
+            border-left: 7px solid #ecc94b;
+            margin-bottom: 18px;
+            padding: 10px 15px;
+            border-radius: 18px;
+        }
+        #fechar-modal-contexto {
+            margin-top: 28px;
+            font-size: 1.1em;
+            padding: 8px 24px;
+            background: #38b2ac;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: not-allowed;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        #fechar-modal-contexto.enabled {
+            cursor: pointer;
+            opacity: 1;
+        }
+        .conclusao-tela {
+            display: none;
+            background: #f7fafc;
+            padding: 36px 8vw;
+        }
+        .autor-conclusao {
+            margin-bottom: 38px;
+            border-bottom: 2.5px solid #bee3f8;
+            padding-bottom: 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        .autor-conclusao img {
+            width: 500px;
+            height: 280px;
+            border-radius: 22px;
+            border: 5px solid #4299e1;
+            background: #fff;
+            object-fit: contain;
+            box-shadow: 0 4px 32px #0003;
+        }
+        .autor-conclusao-info {
+            max-width: 620px;
+        }
+        .autor-conclusao-info h3 {
+            margin: 0 0 10px 0;
+            color: #234e52;
+            font-size: 1.28em;
+        }
+        .autor-conclusao-info .frase-concluida {
+            margin: 11px 0;
+            background: #e6fffa;
+            border-left: 7px solid #ecc94b;
+            padding: 10px 18px;
+            border-radius: 11px;
+            font-size: 1.06em;
+            color: #222;
+            font-weight: bold;
+        }
+        .autor-conclusao-info .explica {
+            color: #222;
+            margin-bottom: 12px;
+            margin-top: -6px;
+            font-size: 0.99em;
+        }
+        @media (max-width: 1350px) {
+            .trilha-board { gap: 20px; }
+            .autor-retrato img { width: 230px; height: 129px; }
+            .autor-retrato h3 { width: 220px; }
+            .conclusao-tela { padding: 22px 4vw; }
+            .autor-conclusao img { width: 350px; height: 196px; }
+        }
+        @media (max-width: 900px) {
+            .trilha-board { flex-wrap: wrap; gap: 10px;}
+            .autor-conclusao img { width: 210px; height: 118px; }
+            .conclusao-tela { padding: 10px 1vw; }
+        }
+        @media (max-width: 700px) {
+            .trilha-board { flex-direction: column; align-items: center; }
+            .carta-central-area { margin: 16px 0; }
+            .conclusao-tela { padding: 6px 0; }
+            .autor-conclusao img { width: 95vw; height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <!-- TELA 1 -->
+    <div class="intro" id="tela1">
+        <h2>Trilha Antirracista: Vozes Negras Que Inspiram</h2>
+        <div class="creditos">
+            Produzido por - Christopher de Andrade Cardoso <br>
+            Colaboradoras - Danielli Santos & Patricia Brizola
+        </div>
+        <div class="escola">
+            PEI - Edison Bastos Gasparini Pref.
+        </div>
+    </div>
+    <div class="boas-vindas" id="tela1-bemvindo">
+        Bem-vindos à Trilha Antirracista!<br>
+        Aqui você vai conhecer mulheres e homens negros que mudaram a história do Brasil, lutaram contra o racismo e inspiram gerações com suas palavras e ações.<br><br>
+        Em cada quadro, descubra um pouco da vida e da luta desses autores. Entre um quadro e outro, resolva o enigma e encontre a frase que traduz a força, a resistência e a inteligência de quem nunca aceitou o silêncio diante da injustiça.<br><br>
+        <b>Seu desafio:</b> acerte qual frase pertence a cada autor ou autora.<br>
+        A luta antirracista não termina aqui. Ela continua todos os dias, em cada atitude.<br>
+        <b>Quem faz a trilha, faz história.</b>
+        <button class="btn-comecar" id="btn-comecar">Começar trilha!</button>
+    </div>
+
+    <!-- TELA 2: JOGO -->
+    <div class="tela-jogo" id="tela2-jogo">
+        <div class="trilha-board" id="trilha-board">
+            <!-- Autores e espaços da trilha via JS -->
+        </div>
+        <div class="carta-central-area">
+            <div class="carta-baralho" id="carta-baralho" draggable="true">
+                <!-- Aqui vai a imagem do baralho ou a frase -->
+            </div>
+        </div>
+        <button class="virar-carta-btn" id="virar-carta-btn">
+            <img src="baralho.png" alt="Baralho" style="width:28px;height:40px;vertical-align:middle;margin-right:9px;"> Virar carta!
+        </button>
+        <div class="parabens" id="parabens-msg">
+            Parabéns! Você completou a Trilha Antirracista! <br>
+            Veja as frases e histórias completas abaixo.<br>
+            <button onclick="mostrarConclusao()">Ver conclusão</button>
+        </div>
+    </div>
+
+    <!-- TELA 3: CONCLUSÃO -->
+    <div class="conclusao-tela" id="tela3-conclusao">
+        <!-- Aqui aparece, via JS, o mural final com cada autor, foto e as frases encaixadas e explicadas -->
+    </div>
+
+    <!-- Sons do jogo -->
+    <audio id="success-audio" src="comencaixe.mp3"></audio>
+    <audio id="erro-audio" src="semencaixe.mp3"></audio>
+    <audio id="virarcarta-audio" src="cartavirando.mp3"></audio>
+
+    <div id="modal-contexto">
+        <div id="modal-contento-inner">
+            <div id="modal-contexto-texto"></div>
+            <button id="fechar-modal-contexto" disabled>Fechar (20)</button>
+        </div>
+    </div>
+<script>
+/* ----------- DADOS DOS AUTORES E FRASES ------------ */
+const autores = [
+    {
+        nome: "Carolina Maria de Jesus",
+        img: "carolina.png",
+        frases: [
+            "O Brasil precisa ser dirigido por uma pessoa que já passou fome. A fome também é professora. Quem passa fome aprende a pensar no próximo e nas crianças.",
+            "Tenho raiva dos ricos, porque eles exploram os pobres, e ninguém fala nada. O pobre está sempre calado, sempre com medo.",
+            "Aqui na favela, quando alguém morre, não tem ninguém para lamentar. O pobre só serve para trabalhar e morrer."
+        ],
+        contextos: [
+            "Moradora da favela do Canindé, em São Paulo, Carolina viveu e registrou a fome e a miséria em seu diário. Para ela, quem já sentiu a dor da fome nunca esquece do sofrimento do outro. Essa frase revela sua esperança em uma sociedade mais empática, governada por quem realmente entende a realidade do povo.",
+            "Carolina nunca aceitou a injustiça social e sempre denunciou a desigualdade entre ricos e pobres. Sua escrita é um grito contra a exploração, mostrando como o silêncio dos mais pobres é resultado de um sistema opressor que cala e invisibiliza as vozes das periferias.",
+            "Em seu diário, Carolina narra a solidão e o abandono vividos nas favelas. Para ela, a vida dos pobres era desvalorizada pela sociedade. Essa frase expõe o descaso e a invisibilidade impostos aos moradores das periferias urbanas, mostrando a urgência de mudança social."
+        ]
+    },
+    {
+        nome: "Conceição Evaristo",
+        img: "conceicao.png",
+        frases: [
+            "Eles combinaram de nos matar, mas a gente combinou de não morrer.",
+            "Minha mãe sempre disse: quem nasceu para semente não morre no vento.",
+            "Minha escrevivência não se limita ao papel, é grito, é vida, é corpo inteiro lutando contra o silêncio imposto."
+        ],
+        contextos: [
+            "Essa escritora cresceu em meio às dificuldades da periferia, cercada por desafios e resistências. Ela transformou o cotidiano da mulher negra em literatura e, ao invés de aceitar o silêncio imposto, se levantou como voz de muitas. Esta frase nasceu do enfrentamento diário à exclusão e mostra a força coletiva da sobrevivência.",
+            "A ancestralidade é marca profunda na obra desta autora. Desde pequena, aprendeu com sua mãe e avó que o povo negro é como semente: pode até ser levado pelo vento da opressão, mas sempre cria raiz e resiste. Suas palavras sempre resgatam a força das origens e o legado transmitido de geração em geração.",
+            "Para essa autora, escrever é existir. Ela criou o conceito de “escrevivência” porque sente que sua escrita nasce da vida real, das dores, conquistas e lutas. Suas obras denunciam a tentativa de calar a voz da mulher negra, mas sua literatura é ato de resistência — é vida gritando por justiça."
+        ]
+    },
+    {
+        nome: "Lima Barreto",
+        img: "lima.png",
+        frases: [
+            "Não me querem por causa da minha cor.",
+            "A cor do meu sangue, a forma dos meus cabelos, a planície do meu nariz e a dos meus lábios, tudo me denuncia. E tudo me condena.",
+            "Se eu não fosse preto, seria mais considerado; seria até político."
+        ],
+        contextos: [
+            "Filho de ex-escravizados, Lima Barreto enfrentou preconceito em todas as áreas da vida, inclusive na literatura. Mesmo sendo um dos grandes escritores do país, foi constantemente rejeitado pelos círculos elitistas. Essa frase traduz o peso do racismo institucional vivido por ele, um olhar direto sobre a exclusão sofrida no Brasil do século XX.",
+            "Lima Barreto nunca escondeu suas origens, e sempre deixou claro o quanto a aparência negra era motivo de julgamento. Sua literatura traz, de forma crua, a experiência do negro que é acusado e condenado pelo simples fato de existir e ocupar espaços onde poucos esperam vê-lo.",
+            "Ao escrever sobre a própria trajetória, Lima Barreto deixa claro como a cor da pele influenciou o reconhecimento (ou a falta dele) na sociedade. Ele sabia que muitos dos seus méritos seriam mais valorizados se fosse branco. Com essa frase, escancarou a barreira do preconceito e denunciou o racismo estrutural da elite brasileira."
+        ]
+    },
+    {
+        nome: "Djamila Ribeiro",
+        img: "djamila.png",
+        frases: [
+            "Não basta não ser racista, é preciso ser antirracista.",
+            "Ser antirracista é combater toda e qualquer forma de discriminação racial, é questionar privilégios e lutar pela justiça social.",
+            "O silêncio diante do racismo é uma forma de consentimento."
+        ],
+        contextos: [
+            "Djamila Ribeiro é referência nacional na luta contra o racismo. Essa frase virou lema de mobilização porque ela acredita que, para mudar de verdade, não basta se omitir ou ficar em cima do muro — é preciso agir, se posicionar e combater o racismo em todas as esferas.",
+            "Filósofa e ativista, Djamila ensina que o antirracismo exige ação consciente. Não é só sobre respeitar, mas sobre desconstruir privilégios, enfrentar desigualdades e lutar para que a justiça social seja realidade para todos.",
+            "Para Djamila, não se posicionar é compactuar. Ao longo de sua carreira, ela provoca o debate e chama atenção para a necessidade de romper com a neutralidade — pois o silêncio acaba protegendo quem pratica a discriminação."
+        ]
+    },
+    {
+        nome: "Sueli Carneiro",
+        img: "sueli.png",
+        frases: [
+            "O racismo é uma experiência fundadora da existência da população negra no Brasil. Ele não é acessório, é constitutivo.",
+            "A luta antirracista é um dever de toda a sociedade e não apenas das vítimas do racismo.",
+            "A democracia racial é um mito que mascara a violência cotidiana sofrida pela população negra."
+        ],
+        contextos: [
+            "Referência do movimento negro, Sueli Carneiro denuncia que o racismo não é algo pontual, mas está na raiz da formação da sociedade brasileira. Sua luta é para desconstruir essa estrutura desde a base.",
+            "Ativista e pensadora, Sueli reforça que combater o racismo não é obrigação apenas das pessoas negras. A sociedade como um todo precisa assumir essa responsabilidade e agir por justiça.",
+            "Ao longo dos anos, muito se falou que o Brasil era uma democracia racial, mas Sueli escancara que isso é uma ilusão. O racismo persiste, muitas vezes invisível, mas machuca, exclui e mata diariamente."
+        ]
+    },
+    {
+        nome: "Luiz Gama",
+        img: "luiz.png",
+        frases: [
+            "Que país é este, onde o preto, o pardo e o mestiço não são homens e sim mercadoria?",
+            "O que mais me espanta não é o crime do escravizador, mas a indiferença dos homens livres.",
+            "A liberdade não se dá, conquista-se. E todo homem tem direito de ser livre."
+        ],
+        contextos: [
+            "Ex-escravizado, Luiz Gama se tornou advogado autodidata e libertou centenas de pessoas da escravidão. Com esta frase, ele denuncia a desumanização brutal sofrida pelos negros no Brasil escravista.",
+            "Para Luiz Gama, a pior violência não era só a escravidão em si, mas o silêncio e a omissão dos que poderiam lutar contra ela. Ele provoca: de que lado você está, quem se cala diante da injustiça?",
+            "A luta de Luiz Gama foi pela liberdade conquistada, não concedida por benevolência de ninguém. Ele sempre incentivou a resistência, a luta ativa e a consciência de que todo ser humano merece ser livre por direito."
+        ]
+    }
+];
+
+/* --------- NAVEGAÇÃO ENTRE TELAS ---------- */
+const tela1 = document.getElementById('tela1');
+const tela1b = document.getElementById('tela1-bemvindo');
+const tela2 = document.getElementById('tela2-jogo');
+const tela3 = document.getElementById('tela3-conclusao');
+document.getElementById('btn-comecar').onclick = function() {
+    tela1.style.display = 'none';
+    tela1b.style.display = 'none';
+    tela2.style.display = 'block';
+    window.scrollTo(0,0);
+}
+
+/* --------- MONTAGEM DA TRILHA/JOGO --------- */
+const trilhaBoard = document.getElementById("trilha-board");
+function montarTrilha() {
+    trilhaBoard.innerHTML = '';
+    autores.forEach((autor, aidx) => {
+        // Autor
+        let elAutor = document.createElement("div");
+        elAutor.className = "autor-retrato";
+        elAutor.innerHTML = `
+            <img src="${autor.img}" alt="Retrato de ${autor.nome}">
+            <h3>${autor.nome}</h3>
+        `;
+        trilhaBoard.appendChild(elAutor);
+
+        // 3 espaços da trilha (quadrados)
+        let espacos = document.createElement("div");
+        espacos.className = "trilha-espacos";
+        for (let i = 0; i < 3; i++) {
+            let quad = document.createElement("div");
+            quad.className = "trilha-quadrado";
+            quad.dataset.autor = aidx;
+            quad.dataset.idx = i;
+            espacos.appendChild(quad);
+        }
+        trilhaBoard.appendChild(espacos);
+    });
+}
+montarTrilha();
+
+/* ------------ BARALHO, CARTA E SONS -------------- */
+const cartaBaralho = document.getElementById("carta-baralho");
+const btnVirarCarta = document.getElementById("virar-carta-btn");
+const audioAcerto = document.getElementById('success-audio');
+const audioErro = document.getElementById('erro-audio');
+const audioVirar = document.getElementById('virarcarta-audio');
+
+let frasesArr = [];
+autores.forEach((autor, aidx) => {
+    autor.frases.forEach((frase, fidx) => {
+        frasesArr.push({
+            frase: frase,
+            autorIdx: aidx,
+            fraseIdx: fidx
+        });
+    });
+});
+frasesArr = frasesArr.sort(() => Math.random() - 0.5);
+
+let cartaAtual = null;
+let idxCarta = 0;
+let bloqueado = false;
+
+function mostraBaralho() {
+    cartaBaralho.innerHTML = `<img src="baralho.png" alt="Baralho" style="width:80px;height:120px;opacity:0.92;">`;
+    cartaBaralho.classList.add("show");
+    cartaBaralho.setAttribute("draggable", false);
+    btnVirarCarta.style.display = "block";
+}
+mostraBaralho();
+
+btnVirarCarta.onclick = function () {
+    if (bloqueado) return;
+    if (idxCarta >= frasesArr.length) return;
+    let atual = frasesArr[idxCarta];
+    audioVirar.currentTime = 0;
+    audioVirar.play();
+    cartaAtual = atual;
+    cartaBaralho.innerHTML = `<div style="margin-bottom:6px;"><img src="baralho.png" alt="Baralho" style="width:36px;height:52px;opacity:0.55;"></div>${atual.frase}`;
+    cartaBaralho.classList.add("show");
+    cartaBaralho.setAttribute("draggable", true);
+    btnVirarCarta.style.display = "none";
+};
+
+/* --------- DRAG AND DROP ---------- */
+cartaBaralho.addEventListener('dragstart', function (e) {
+    if (!cartaAtual || bloqueado) e.preventDefault();
+    this.classList.add('dragging');
+});
+cartaBaralho.addEventListener('dragend', function (e) {
+    this.classList.remove('dragging');
+});
+
+function registrarDropzones() {
+    document.querySelectorAll('.trilha-quadrado').forEach(quad => {
+        quad.addEventListener('dragover', function (e) {
+            if (!cartaAtual || bloqueado) return;
+            e.preventDefault();
+            this.classList.add('active');
+        });
+        quad.addEventListener('dragleave', function (e) {
+            this.classList.remove('active');
+        });
+        quad.addEventListener('drop', function (e) {
+            this.classList.remove('active');
+            if (!cartaAtual || bloqueado) return;
+
+            let autorAlvo = Number(this.dataset.autor);
+            if (autorAlvo === cartaAtual.autorIdx && !this.classList.contains('filled')) {
+                this.classList.add('filled');
+                this.innerHTML = ""; // Só marca o X
+                playAcerto();
+                showModalContexto(cartaAtual.frase, autores[autorAlvo].contextos[cartaAtual.fraseIdx]);
+                if (!respostasFinal[autorAlvo]) respostasFinal[autorAlvo] = [];
+                respostasFinal[autorAlvo].push({ frase: cartaAtual.frase, contexto: autores[autorAlvo].contextos[cartaAtual.fraseIdx] });
+                cartaAtual = null;
+                cartaBaralho.classList.remove("show");
+                idxCarta++;
+                setTimeout(() => {
+                    if (idxCarta < frasesArr.length) mostraBaralho();
+                    else document.getElementById('parabens-msg').style.display = 'block';
+                }, 700);
+            } else {
+                playErro();
+            }
+        });
+    });
+}
+registrarDropzones();
+
+/* -------- SONS --------- */
+function playAcerto() {
+    audioAcerto.currentTime = 0;
+    audioAcerto.play();
+}
+function playErro() {
+    audioErro.currentTime = 0;
+    audioErro.play();
+}
+
+/* -------- MODAL DE CONTEXTO --------- */
+const modal = document.getElementById('modal-contexto');
+const modalTexto = document.getElementById('modal-contexto-texto');
+const fecharModalBtn = document.getElementById('fechar-modal-contexto');
+let modalTimeout = null;
+
+function showModalContexto(frase, contexto) {
+    bloqueado = true;
+    modalTexto.innerHTML =
+        `<div class="frase-modal">"${frase}"</div><div>${contexto}</div>`;
+    modal.style.display = 'flex';
+    fecharModalBtn.disabled = true;
+    fecharModalBtn.classList.remove("enabled");
+    fecharModalBtn.innerText = 'Fechar (20)';
+    let tempo = 20;
+    modalTimeout = setInterval(() => {
+        tempo--;
+        fecharModalBtn.innerText = `Fechar (${tempo})`;
+        if (tempo <= 0) {
+            clearInterval(modalTimeout);
+            fecharModalBtn.disabled = false;
+            fecharModalBtn.classList.add("enabled");
+            fecharModalBtn.innerText = 'Fechar';
+        }
+    }, 1000);
+}
+
+fecharModalBtn.addEventListener('click', () => {
+    if (!fecharModalBtn.disabled) {
+        modal.style.display = 'none';
+        bloqueado = false;
+    }
+});
+
+/* ---------- MURAL FINAL/CONCLUSÃO ------------ */
+let respostasFinal = [[],[],[],[],[],[]];
+function mostrarConclusao() {
+    tela2.style.display = 'none';
+    tela3.style.display = 'block';
+    window.scrollTo(0,0);
+    let html = `<h2 style="text-align:center;margin-bottom:18px;color:#234e52;">Mural da Trilha Antirracista</h2>`;
+    autores.forEach((autor, aidx) => {
+        html += `
+        <div class="autor-conclusao">
+            <img src="${autor.img}" alt="${autor.nome}">
+            <div class="autor-conclusao-info">
+                <h3>${autor.nome}</h3>
+                ${(respostasFinal[aidx]||[]).map((item,ix)=>`
+                    <div class="frase-concluida">${item.frase}</div>
+                    <div class="explica">${item.contexto}</div>
+                `).join('')}
+            </div>
+        </div>
+        `;
+    });
+    tela3.innerHTML = html;
+}
+</script>
+</body>
+</html>
