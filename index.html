@@ -150,13 +150,17 @@
             user-select: none;
             cursor: grab;
             position: relative;
-            transition: box-shadow 0.22s;
+            transition: box-shadow 0.22s, border-color 0.16s;
             z-index: 10;
             display: none;
         }
         .carta-baralho.show {
             display: block;
             animation: aparecerCarta 0.35s;
+        }
+        .carta-baralho.selecionada {
+            border-color: #38b2ac;
+            box-shadow: 0 0 24px #38b2ac66;
         }
         @keyframes aparecerCarta {
             from { transform: rotateY(80deg) scale(0.85); opacity: 0;}
@@ -372,6 +376,10 @@
         </div>
     </div>
 <script>
+function isMobile() {
+    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop|Mobile/i.test(navigator.userAgent);
+}
+
 /* ----------- DADOS DOS AUTORES E FRASES ------------ */
 const autores = [
     {
@@ -523,12 +531,15 @@ frasesArr = frasesArr.sort(() => Math.random() - 0.5);
 let cartaAtual = null;
 let idxCarta = 0;
 let bloqueado = false;
+let mobileSelecionando = false; // true se está no processo de "pegar" a carta no mobile
 
 function mostraBaralho() {
     cartaBaralho.innerHTML = `<img src="baralho.png" alt="Baralho" style="width:80px;height:120px;opacity:0.92;">`;
     cartaBaralho.classList.add("show");
-    cartaBaralho.setAttribute("draggable", false);
+    cartaBaralho.setAttribute("draggable", !isMobile());
     btnVirarCarta.style.display = "block";
+    cartaBaralho.classList.remove('selecionada');
+    mobileSelecionando = false;
 }
 mostraBaralho();
 
@@ -541,55 +552,97 @@ btnVirarCarta.onclick = function () {
     cartaAtual = atual;
     cartaBaralho.innerHTML = `<div style="margin-bottom:6px;"><img src="baralho.png" alt="Baralho" style="width:36px;height:52px;opacity:0.55;"></div>${atual.frase}`;
     cartaBaralho.classList.add("show");
-    cartaBaralho.setAttribute("draggable", true);
+    cartaBaralho.setAttribute("draggable", !isMobile());
     btnVirarCarta.style.display = "none";
+    cartaBaralho.classList.remove('selecionada');
+    mobileSelecionando = false;
 };
 
 /* --------- DRAG AND DROP ---------- */
-cartaBaralho.addEventListener('dragstart', function (e) {
-    if (!cartaAtual || bloqueado) e.preventDefault();
-    this.classList.add('dragging');
-});
-cartaBaralho.addEventListener('dragend', function (e) {
-    this.classList.remove('dragging');
-});
+if (!isMobile()) {
+    cartaBaralho.addEventListener('dragstart', function (e) {
+        if (!cartaAtual || bloqueado) e.preventDefault();
+        this.classList.add('dragging');
+    });
+    cartaBaralho.addEventListener('dragend', function (e) {
+        this.classList.remove('dragging');
+    });
+}
 
 function registrarDropzones() {
     document.querySelectorAll('.trilha-quadrado').forEach(quad => {
-        quad.addEventListener('dragover', function (e) {
-            if (!cartaAtual || bloqueado) return;
-            e.preventDefault();
-            this.classList.add('active');
-        });
-        quad.addEventListener('dragleave', function (e) {
-            this.classList.remove('active');
-        });
-        quad.addEventListener('drop', function (e) {
-            this.classList.remove('active');
-            if (!cartaAtual || bloqueado) return;
+        if (!isMobile()) {
+            quad.addEventListener('dragover', function (e) {
+                if (!cartaAtual || bloqueado) return;
+                e.preventDefault();
+                this.classList.add('active');
+            });
+            quad.addEventListener('dragleave', function (e) {
+                this.classList.remove('active');
+            });
+            quad.addEventListener('drop', function (e) {
+                this.classList.remove('active');
+                if (!cartaAtual || bloqueado) return;
 
-            let autorAlvo = Number(this.dataset.autor);
-            if (autorAlvo === cartaAtual.autorIdx && !this.classList.contains('filled')) {
-                this.classList.add('filled');
-                this.innerHTML = ""; // Só marca o X
-                playAcerto();
-                showModalContexto(cartaAtual.frase, autores[autorAlvo].contextos[cartaAtual.fraseIdx]);
-                if (!respostasFinal[autorAlvo]) respostasFinal[autorAlvo] = [];
-                respostasFinal[autorAlvo].push({ frase: cartaAtual.frase, contexto: autores[autorAlvo].contextos[cartaAtual.fraseIdx] });
-                cartaAtual = null;
-                cartaBaralho.classList.remove("show");
-                idxCarta++;
-                setTimeout(() => {
-                    if (idxCarta < frasesArr.length) mostraBaralho();
-                    else document.getElementById('parabens-msg').style.display = 'block';
-                }, 700);
-            } else {
-                playErro();
-            }
-        });
+                let autorAlvo = Number(this.dataset.autor);
+                if (autorAlvo === cartaAtual.autorIdx && !this.classList.contains('filled')) {
+                    this.classList.add('filled');
+                    this.innerHTML = ""; // Só marca o X
+                    playAcerto();
+                    showModalContexto(cartaAtual.frase, autores[autorAlvo].contextos[cartaAtual.fraseIdx]);
+                    if (!respostasFinal[autorAlvo]) respostasFinal[autorAlvo] = [];
+                    respostasFinal[autorAlvo].push({ frase: cartaAtual.frase, contexto: autores[autorAlvo].contextos[cartaAtual.fraseIdx] });
+                    cartaAtual = null;
+                    cartaBaralho.classList.remove("show");
+                    idxCarta++;
+                    setTimeout(() => {
+                        if (idxCarta < frasesArr.length) mostraBaralho();
+                        else document.getElementById('parabens-msg').style.display = 'block';
+                    }, 700);
+                } else {
+                    playErro();
+                }
+            });
+        } else {
+            // MOBILE: clique (touch) no quadrado para encaixar a carta SE estiver selecionada
+            quad.onclick = function () {
+                if (!cartaAtual || bloqueado || !mobileSelecionando) return;
+                let autorAlvo = Number(this.dataset.autor);
+                if (autorAlvo === cartaAtual.autorIdx && !this.classList.contains('filled')) {
+                    this.classList.add('filled');
+                    this.innerHTML = ""; // Só marca o X
+                    playAcerto();
+                    showModalContexto(cartaAtual.frase, autores[autorAlvo].contextos[cartaAtual.fraseIdx]);
+                    if (!respostasFinal[autorAlvo]) respostasFinal[autorAlvo] = [];
+                    respostasFinal[autorAlvo].push({ frase: cartaAtual.frase, contexto: autores[autorAlvo].contextos[cartaAtual.fraseIdx] });
+                    cartaAtual = null;
+                    cartaBaralho.classList.remove("show");
+                    cartaBaralho.classList.remove('selecionada');
+                    idxCarta++;
+                    setTimeout(() => {
+                        if (idxCarta < frasesArr.length) mostraBaralho();
+                        else document.getElementById('parabens-msg').style.display = 'block';
+                    }, 700);
+                } else {
+                    playErro();
+                }
+            };
+        }
     });
 }
 registrarDropzones();
+
+/* --- MOBILE: toque para "pegar" carta, depois toque no quadrado para soltar --- */
+if (isMobile()) {
+    cartaBaralho.onclick = function() {
+        if (!cartaAtual || bloqueado) return;
+        // só permite selecionar se a carta está virada
+        if (!cartaBaralho.classList.contains('show')) return;
+        // ativa modo de seleção
+        mobileSelecionando = true;
+        cartaBaralho.classList.add('selecionada');
+    };
+}
 
 /* -------- SONS --------- */
 function playAcerto() {
@@ -609,6 +662,8 @@ let modalTimeout = null;
 
 function showModalContexto(frase, contexto) {
     bloqueado = true;
+    mobileSelecionando = false;
+    cartaBaralho.classList.remove('selecionada');
     modalTexto.innerHTML =
         `<div class="frase-modal">"${frase}"</div><div>${contexto}</div>`;
     modal.style.display = 'flex';
