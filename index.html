@@ -150,17 +150,13 @@
             user-select: none;
             cursor: grab;
             position: relative;
-            transition: box-shadow 0.22s, border-color 0.16s;
+            transition: box-shadow 0.22s;
             z-index: 10;
             display: none;
         }
         .carta-baralho.show {
             display: block;
             animation: aparecerCarta 0.35s;
-        }
-        .carta-baralho.selecionada {
-            border-color: #38b2ac;
-            box-shadow: 0 0 24px #38b2ac66;
         }
         @keyframes aparecerCarta {
             from { transform: rotateY(80deg) scale(0.85); opacity: 0;}
@@ -297,6 +293,58 @@
             margin-top: -6px;
             font-size: 0.99em;
         }
+        /* ---- ALERTA RACISMO ---- */
+        #alerta-racismo {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(33,37,41,0.9);
+            z-index: 20000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #alerta-racismo-inner {
+            background: #fff;
+            color: #222;
+            border-radius: 26px;
+            box-shadow: 0 8px 48px #0009;
+            max-width: 560px;
+            min-width: 320px;
+            padding: 38px 30px 26px 30px;
+            font-size: 1.18em;
+            text-align: left;
+            border: 3px solid #b83232;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #texto-alerta-racismo {
+            margin-bottom: 22px;
+            font-size: 1.08em;
+            color: #b83232;
+            font-weight: bold;
+            text-align: left;
+            line-height: 1.44;
+        }
+        #fechar-alerta-racismo {
+            background: #b83232;
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            padding: 12px 38px;
+            font-size: 1.18em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 10px #0002;
+            margin-top: 8px;
+            letter-spacing: 0.02em;
+            transition: background 0.12s;
+        }
+        #fechar-alerta-racismo:active {
+            background: #941c1c;
+        }
         @media (max-width: 1350px) {
             .trilha-board { gap: 20px; }
             .autor-retrato img { width: 230px; height: 129px; }
@@ -317,7 +365,6 @@
         }
     </style>
 </head>
-<body>
     <!-- TELA 1 -->
     <div class="intro" id="tela1">
         <h2>Trilha Antirracista: Vozes Negras Que Inspiram</h2>
@@ -341,13 +388,9 @@
 
     <!-- TELA 2: JOGO -->
     <div class="tela-jogo" id="tela2-jogo">
-        <div class="trilha-board" id="trilha-board">
-            <!-- Autores e espaços da trilha via JS -->
-        </div>
+        <div class="trilha-board" id="trilha-board"></div>
         <div class="carta-central-area">
-            <div class="carta-baralho" id="carta-baralho" draggable="true">
-                <!-- Aqui vai a imagem do baralho ou a frase -->
-            </div>
+            <div class="carta-baralho" id="carta-baralho" draggable="true"></div>
         </div>
         <button class="virar-carta-btn" id="virar-carta-btn">
             <img src="baralho.png" alt="Baralho" style="width:28px;height:40px;vertical-align:middle;margin-right:9px;"> Virar carta!
@@ -360,14 +403,20 @@
     </div>
 
     <!-- TELA 3: CONCLUSÃO -->
-    <div class="conclusao-tela" id="tela3-conclusao">
-        <!-- Aqui aparece, via JS, o mural final com cada autor, foto e as frases encaixadas e explicadas -->
-    </div>
+    <div class="conclusao-tela" id="tela3-conclusao"></div>
 
     <!-- Sons do jogo -->
     <audio id="success-audio" src="comencaixe.mp3"></audio>
     <audio id="erro-audio" src="semencaixe.mp3"></audio>
     <audio id="virarcarta-audio" src="cartavirando.mp3"></audio>
+
+    <!-- Caixa de alerta sobre racismo -->
+    <div id="alerta-racismo" style="display:none;">
+        <div id="alerta-racismo-inner">
+            <div id="texto-alerta-racismo"></div>
+            <button id="fechar-alerta-racismo">Racismo não!</button>
+        </div>
+    </div>
 
     <div id="modal-contexto">
         <div id="modal-contento-inner">
@@ -375,12 +424,27 @@
             <button id="fechar-modal-contexto" disabled>Fechar (20)</button>
         </div>
     </div>
-<script>
-function isMobile() {
-    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop|Mobile/i.test(navigator.userAgent);
-}
 
-/* ----------- DADOS DOS AUTORES E FRASES ------------ */
+<script>
+const frasesRacismo = [
+    "Racismo estrutural: O preconceito não é só individual; está embutido nas instituições, nas leis, nos costumes e até na economia.",
+    "“Não existe racismo no Brasil”: Muita gente fala isso, mas é só abrir os olhos: a desigualdade racial está em todo lugar.",
+    "Preto parado é suspeito, correndo é ladrão: Frase triste, mas retrata o racismo cotidiano da abordagem policial.",
+    "Dados do IBGE (2022): Negros (pretos e pardos) representam 56% da população, mas só 28% dos cargos de chefia no Brasil.",
+    "Diferença salarial: Pessoas negras recebem, em média, cerca de 56% do salário das pessoas brancas, segundo o IBGE.",
+    "Maioria nas universidades? Ainda não. O acesso de negros ao ensino superior melhorou com cotas, mas a maior parte dos estudantes universitários ainda é branca.",
+    "Letalidade policial: Mais de 75% dos mortos pela polícia no Brasil são negros.",
+    "“Não sou racista, tenho até amigos negros”: Essa frase é clássica e só reforça o problema: achar que amizade isenta de preconceito.",
+    "Branqueamento: Existe um incentivo histórico para “embranquecer” a população, seja nas novelas, na moda ou na política.",
+    "Feminicídio racial: Mulheres negras têm 62% mais chances de serem vítimas de feminicídio do que mulheres brancas (Atlas da Violência 2023).",
+    "Representatividade: Só 24% dos deputados federais eleitos em 2022 se autodeclaram pretos ou pardos, mesmo sendo maioria da população.",
+    "Racismo recreativo: Piadas, memes e “brincadeiras” que reforçam estereótipos racistas ainda são banalizadas.",
+    "Cotas raciais: Polêmicas, mas fundamentais para equilibrar oportunidades de acesso à universidade e ao mercado de trabalho.",
+    "Estética negra é resistência: Valorização do cabelo crespo, tranças e turbantes é um ato político em um país que ainda tenta impor o padrão branco.",
+    "Religiões de matriz africana: Sofrem ataques, intolerância e demonização, mostrando o racismo religioso entranhado na sociedade.",
+    "Negação do racismo: “Aqui é só piada, não é igual aos EUA” – argumento usado para minimizar a gravidade do racismo brasileiro."
+];
+
 const autores = [
     {
         nome: "Carolina Maria de Jesus",
@@ -468,7 +532,6 @@ const autores = [
     }
 ];
 
-/* --------- NAVEGAÇÃO ENTRE TELAS ---------- */
 const tela1 = document.getElementById('tela1');
 const tela1b = document.getElementById('tela1-bemvindo');
 const tela2 = document.getElementById('tela2-jogo');
@@ -480,12 +543,10 @@ document.getElementById('btn-comecar').onclick = function() {
     window.scrollTo(0,0);
 }
 
-/* --------- MONTAGEM DA TRILHA/JOGO --------- */
 const trilhaBoard = document.getElementById("trilha-board");
 function montarTrilha() {
     trilhaBoard.innerHTML = '';
     autores.forEach((autor, aidx) => {
-        // Autor
         let elAutor = document.createElement("div");
         elAutor.className = "autor-retrato";
         elAutor.innerHTML = `
@@ -493,8 +554,6 @@ function montarTrilha() {
             <h3>${autor.nome}</h3>
         `;
         trilhaBoard.appendChild(elAutor);
-
-        // 3 espaços da trilha (quadrados)
         let espacos = document.createElement("div");
         espacos.className = "trilha-espacos";
         for (let i = 0; i < 3; i++) {
@@ -509,7 +568,6 @@ function montarTrilha() {
 }
 montarTrilha();
 
-/* ------------ BARALHO, CARTA E SONS -------------- */
 const cartaBaralho = document.getElementById("carta-baralho");
 const btnVirarCarta = document.getElementById("virar-carta-btn");
 const audioAcerto = document.getElementById('success-audio');
@@ -531,15 +589,12 @@ frasesArr = frasesArr.sort(() => Math.random() - 0.5);
 let cartaAtual = null;
 let idxCarta = 0;
 let bloqueado = false;
-let mobileSelecionando = false; // true se está no processo de "pegar" a carta no mobile
 
 function mostraBaralho() {
     cartaBaralho.innerHTML = `<img src="baralho.png" alt="Baralho" style="width:80px;height:120px;opacity:0.92;">`;
     cartaBaralho.classList.add("show");
-    cartaBaralho.setAttribute("draggable", !isMobile());
+    cartaBaralho.setAttribute("draggable", false);
     btnVirarCarta.style.display = "block";
-    cartaBaralho.classList.remove('selecionada');
-    mobileSelecionando = false;
 }
 mostraBaralho();
 
@@ -552,99 +607,55 @@ btnVirarCarta.onclick = function () {
     cartaAtual = atual;
     cartaBaralho.innerHTML = `<div style="margin-bottom:6px;"><img src="baralho.png" alt="Baralho" style="width:36px;height:52px;opacity:0.55;"></div>${atual.frase}`;
     cartaBaralho.classList.add("show");
-    cartaBaralho.setAttribute("draggable", !isMobile());
+    cartaBaralho.setAttribute("draggable", true);
     btnVirarCarta.style.display = "none";
-    cartaBaralho.classList.remove('selecionada');
-    mobileSelecionando = false;
 };
 
-/* --------- DRAG AND DROP ---------- */
-if (!isMobile()) {
-    cartaBaralho.addEventListener('dragstart', function (e) {
-        if (!cartaAtual || bloqueado) e.preventDefault();
-        this.classList.add('dragging');
-    });
-    cartaBaralho.addEventListener('dragend', function (e) {
-        this.classList.remove('dragging');
-    });
-}
+cartaBaralho.addEventListener('dragstart', function (e) {
+    if (!cartaAtual || bloqueado) e.preventDefault();
+    this.classList.add('dragging');
+});
+cartaBaralho.addEventListener('dragend', function (e) {
+    this.classList.remove('dragging');
+});
 
 function registrarDropzones() {
     document.querySelectorAll('.trilha-quadrado').forEach(quad => {
-        if (!isMobile()) {
-            quad.addEventListener('dragover', function (e) {
-                if (!cartaAtual || bloqueado) return;
-                e.preventDefault();
-                this.classList.add('active');
-            });
-            quad.addEventListener('dragleave', function (e) {
-                this.classList.remove('active');
-            });
-            quad.addEventListener('drop', function (e) {
-                this.classList.remove('active');
-                if (!cartaAtual || bloqueado) return;
-
-                let autorAlvo = Number(this.dataset.autor);
-                if (autorAlvo === cartaAtual.autorIdx && !this.classList.contains('filled')) {
-                    this.classList.add('filled');
-                    this.innerHTML = ""; // Só marca o X
-                    playAcerto();
-                    showModalContexto(cartaAtual.frase, autores[autorAlvo].contextos[cartaAtual.fraseIdx]);
-                    if (!respostasFinal[autorAlvo]) respostasFinal[autorAlvo] = [];
-                    respostasFinal[autorAlvo].push({ frase: cartaAtual.frase, contexto: autores[autorAlvo].contextos[cartaAtual.fraseIdx] });
-                    cartaAtual = null;
-                    cartaBaralho.classList.remove("show");
-                    idxCarta++;
-                    setTimeout(() => {
-                        if (idxCarta < frasesArr.length) mostraBaralho();
-                        else document.getElementById('parabens-msg').style.display = 'block';
-                    }, 700);
-                } else {
-                    playErro();
-                }
-            });
-        } else {
-            // MOBILE: clique (touch) no quadrado para encaixar a carta SE estiver selecionada
-            quad.onclick = function () {
-                if (!cartaAtual || bloqueado || !mobileSelecionando) return;
-                let autorAlvo = Number(this.dataset.autor);
-                if (autorAlvo === cartaAtual.autorIdx && !this.classList.contains('filled')) {
-                    this.classList.add('filled');
-                    this.innerHTML = ""; // Só marca o X
-                    playAcerto();
-                    showModalContexto(cartaAtual.frase, autores[autorAlvo].contextos[cartaAtual.fraseIdx]);
-                    if (!respostasFinal[autorAlvo]) respostasFinal[autorAlvo] = [];
-                    respostasFinal[autorAlvo].push({ frase: cartaAtual.frase, contexto: autores[autorAlvo].contextos[cartaAtual.fraseIdx] });
-                    cartaAtual = null;
-                    cartaBaralho.classList.remove("show");
-                    cartaBaralho.classList.remove('selecionada');
-                    idxCarta++;
-                    setTimeout(() => {
-                        if (idxCarta < frasesArr.length) mostraBaralho();
-                        else document.getElementById('parabens-msg').style.display = 'block';
-                    }, 700);
-                } else {
-                    playErro();
-                }
-            };
-        }
+        quad.addEventListener('dragover', function (e) {
+            if (!cartaAtual || bloqueado) return;
+            e.preventDefault();
+            this.classList.add('active');
+        });
+        quad.addEventListener('dragleave', function (e) {
+            this.classList.remove('active');
+        });
+        quad.addEventListener('drop', function (e) {
+            this.classList.remove('active');
+            if (!cartaAtual || bloqueado) return;
+            let autorAlvo = Number(this.dataset.autor);
+            if (autorAlvo === cartaAtual.autorIdx && !this.classList.contains('filled')) {
+                this.classList.add('filled');
+                this.innerHTML = "";
+                playAcerto();
+                showModalContexto(cartaAtual.frase, autores[autorAlvo].contextos[cartaAtual.fraseIdx]);
+                if (!respostasFinal[autorAlvo]) respostasFinal[autorAlvo] = [];
+                respostasFinal[autorAlvo].push({ frase: cartaAtual.frase, contexto: autores[autorAlvo].contextos[cartaAtual.fraseIdx] });
+                cartaAtual = null;
+                cartaBaralho.classList.remove("show");
+                idxCarta++;
+                setTimeout(() => {
+                    if (idxCarta < frasesArr.length) mostraBaralho();
+                    else document.getElementById('parabens-msg').style.display = 'block';
+                }, 700);
+            } else {
+                playErro();
+                exibirAlertaRacismo();
+            }
+        });
     });
 }
 registrarDropzones();
 
-/* --- MOBILE: toque para "pegar" carta, depois toque no quadrado para soltar --- */
-if (isMobile()) {
-    cartaBaralho.onclick = function() {
-        if (!cartaAtual || bloqueado) return;
-        // só permite selecionar se a carta está virada
-        if (!cartaBaralho.classList.contains('show')) return;
-        // ativa modo de seleção
-        mobileSelecionando = true;
-        cartaBaralho.classList.add('selecionada');
-    };
-}
-
-/* -------- SONS --------- */
 function playAcerto() {
     audioAcerto.currentTime = 0;
     audioAcerto.play();
@@ -654,7 +665,6 @@ function playErro() {
     audioErro.play();
 }
 
-/* -------- MODAL DE CONTEXTO --------- */
 const modal = document.getElementById('modal-contexto');
 const modalTexto = document.getElementById('modal-contexto-texto');
 const fecharModalBtn = document.getElementById('fechar-modal-contexto');
@@ -662,8 +672,6 @@ let modalTimeout = null;
 
 function showModalContexto(frase, contexto) {
     bloqueado = true;
-    mobileSelecionando = false;
-    cartaBaralho.classList.remove('selecionada');
     modalTexto.innerHTML =
         `<div class="frase-modal">"${frase}"</div><div>${contexto}</div>`;
     modal.style.display = 'flex';
@@ -690,7 +698,6 @@ fecharModalBtn.addEventListener('click', () => {
     }
 });
 
-/* ---------- MURAL FINAL/CONCLUSÃO ------------ */
 let respostasFinal = [[],[],[],[],[],[]];
 function mostrarConclusao() {
     tela2.style.display = 'none';
@@ -713,6 +720,30 @@ function mostrarConclusao() {
     });
     tela3.innerHTML = html;
 }
+
+// --------------------- ALERTA DE RACISMO -------------------------
+const alertaRacismo = document.getElementById('alerta-racismo');
+const textoAlertaRacismo = document.getElementById('texto-alerta-racismo');
+const fecharAlertaRacismo = document.getElementById('fechar-alerta-racismo');
+function exibirAlertaRacismo() {
+    // pega aleatoriamente uma frase da lista para exibir
+    let idx = Math.floor(Math.random() * frasesRacismo.length);
+    textoAlertaRacismo.innerHTML = frasesRacismo[idx];
+    alertaRacismo.style.display = 'flex';
+    bloquearTudo();
+}
+fecharAlertaRacismo.onclick = function() {
+    alertaRacismo.style.display = 'none';
+    desbloquearTudo();
+};
+
+function bloquearTudo() {
+    bloqueado = true;
+}
+function desbloquearTudo() {
+    bloqueado = false;
+}
 </script>
 </body>
 </html>
+
