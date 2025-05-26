@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Trilha Antirracista Digital</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -38,7 +37,7 @@
             font-size: 1.08em;
             padding: 24px 10px 34px 10px;
         }
-        .btn-comecar, .continuar-btn, .virar-carta-btn {
+        .btn-comecar, .virar-carta-btn, .continuar-btn {
             display: block;
             margin: 22px auto 0 auto;
             background: #38b2ac;
@@ -52,19 +51,286 @@
             box-shadow: 0 2px 10px #0001;
             transition: background 0.15s;
         }
-        .btn-comecar:active, .continuar-btn:active, .virar-carta-btn:active {
+        .btn-comecar:active, .virar-carta-btn:active, .continuar-btn:active {
             background: #234e52;
         }
-        .tela-jogo, .tela-jogo2, .conclusao-tela { display: none; }
-        /* Adicione os estilos do jogo, popups, etc. nas próximas partes! */
-        @media (max-width: 800px) {
-            .intro, .boas-vindas { font-size: 1em; }
-            .btn-comecar, .continuar-btn, .virar-carta-btn { font-size: 1em; padding: 12px 20px;}
+        .tela-jogo { display: none; }
+        .trilha-board {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 60px;
+            margin: 48px 0 32px 0;
+            position: relative;
+            flex-wrap: wrap;
+        }
+        .autor-retrato {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 330px;
+            max-width: 340px;
+        }
+        .autor-retrato img {
+            width: 320px;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 20px;
+            background: #fff;
+            margin-bottom: 12px;
+            border: 4.5px solid #4299e1;
+            box-shadow: 0 4px 24px #0003;
+            padding: 0;
+        }
+        .autor-retrato h3 {
+            font-size: 1.18em;
+            color: #234e52;
+            text-align: center;
+            margin: 8px 0 6px 0;
+            width: 320px;
+            background: #e6fffa;
+            border-radius: 10px;
+            padding: 4px 0;
+        }
+        .trilha-espacos {
+            display: flex;
+            flex-direction: row;
+            gap: 22px;
+            margin: 0 12px;
+        }
+        .trilha-quadrado {
+            width: 64px;
+            height: 64px;
+            background: #fff;
+            border: 3px dashed #48bb78;
+            border-radius: 18px;
+            box-shadow: 0 1px 8px #0001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: background 0.2s, border 0.2s;
+            font-size: 2.1em;
+        }
+        .trilha-quadrado.filled {
+            background: #38b2ac;
+            border: 3px solid #38b2ac;
+            color: #fff;
+            font-size: 2.5em;
+            font-weight: bold;
+            justify-content: center;
+            align-items: center;
+        }
+        .trilha-quadrado.filled::after {
+            content: "✔";
+            color: #fff;
+            font-size: 1.6em;
+        }
+        .trilha-quadrado.active {
+            background: #fffde7;
+            border-color: #ecc94b;
+        }
+        .carta-central-area {
+            display: flex;
+            justify-content: center;
+            margin: 35px 0 12px 0;
+        }
+        .carta-baralho {
+            background: #fffbea;
+            color: #222;
+            padding: 32px 34px 28px 34px;
+            border-radius: 18px;
+            font-size: 1.38em;
+            box-shadow: 0 4px 28px #ecc94b88;
+            border: 3px solid #ecc94b;
+            min-width: 290px;
+            max-width: 520px;
+            margin: 0 auto;
+            text-align: center;
+            user-select: none;
+            cursor: grab;
+            position: relative;
+            transition: box-shadow 0.22s, border-color 0.16s;
+            z-index: 10;
+            display: none;
+        }
+        .carta-baralho.show {
+            display: block;
+            animation: aparecerCarta 0.35s;
+        }
+        @keyframes aparecerCarta {
+            from { transform: rotateY(80deg) scale(0.85); opacity: 0;}
+            to { transform: rotateY(0deg) scale(1); opacity: 1;}
+        }
+        .virar-carta-btn {
+            display: block;
+            margin: 18px auto 0 auto;
+            background: #38b2ac;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 40px;
+            font-size: 1.13em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 10px #0001;
+            transition: background 0.15s;
+        }
+        .virar-carta-btn:active {
+            background: #234e52;
+        }
+        .carta-baralho img {
+            width: 60px;
+            height: 90px;
+            display: block;
+            margin: -18px auto 6px auto;
+            opacity: 0.6;
+        }
+        .parabens {
+            text-align: center;
+            background: #38b2ac;
+            color: #fff;
+            padding: 22px;
+            border-radius: 18px;
+            font-size: 1.45em;
+            margin: 24px auto;
+            width: 510px;
+            display: none;
+        }
+        .continuar-btn {
+            margin-top: 18px;
+        }
+        #modal-contexto {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(30, 41, 59, 0.85);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        #modal-contento-inner {
+            background: #fff;
+            border-radius: 22px;
+            max-width: 650px;
+            min-width: 340px;
+            padding: 32px 28px;
+            box-shadow: 0 8px 40px #0004;
+            font-size: 1.38em;
+            color: #222;
+            text-align: left;
+            position: relative;
+        }
+        .frase-modal {
+            color: #234e52;
+            font-size: 1.17em;
+            font-weight: bold;
+            background: #fffbea;
+            border-left: 7px solid #ecc94b;
+            margin-bottom: 18px;
+            padding: 10px 15px;
+            border-radius: 18px;
+        }
+        #fechar-modal-contexto {
+            margin-top: 28px;
+            font-size: 1.1em;
+            padding: 8px 24px;
+            background: #38b2ac;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: not-allowed;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        #fechar-modal-contexto.enabled {
+            cursor: pointer;
+            opacity: 1;
+        }
+        /* MODAL RACISMO NÃO */
+        #alerta-racismo {
+            display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:10000;justify-content:center;align-items:center;background:rgba(0,0,0,0.74)
+        }
+        #alerta-racismo-box {
+            background:#fff;padding:42px 36px 28px 36px;max-width:540px;border-radius:28px;box-shadow:0 8px 40px #0006;
+        }
+        #texto-alerta-racismo {
+            color:#c53030;font-size:1.2em;margin-bottom:24px;line-height:1.32;font-weight:bold;
+        }
+        #fechar-alerta-racismo {
+            background:#234e52;color:#fff;padding:14px 38px;border:none;border-radius:14px;font-size:1.17em;font-weight:bold;cursor:pointer;
+        }
+        .conclusao-tela {
+            display: none;
+            background: #f7fafc;
+            padding: 36px 8vw;
+        }
+        .autor-conclusao {
+            margin-bottom: 38px;
+            border-bottom: 2.5px solid #bee3f8;
+            padding-bottom: 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        .autor-conclusao img {
+            width: 500px;
+            height: 280px;
+            border-radius: 22px;
+            border: 5px solid #4299e1;
+            background: #fff;
+            object-fit: contain;
+            box-shadow: 0 4px 32px #0003;
+        }
+        .autor-conclusao-info {
+            max-width: 620px;
+        }
+        .autor-conclusao-info h3 {
+            margin: 0 0 10px 0;
+            color: #234e52;
+            font-size: 1.28em;
+        }
+        .autor-conclusao-info .frase-concluida {
+            margin: 11px 0;
+            background: #e6fffa;
+            border-left: 7px solid #ecc94b;
+            padding: 10px 18px;
+            border-radius: 11px;
+            font-size: 1.09em;
+            color: #222;
+            font-weight: bold;
+        }
+        .autor-conclusao-info .explica {
+            color: #222;
+            margin-bottom: 12px;
+            margin-top: -6px;
+            font-size: 1.01em;
+        }
+        @media (max-width: 1350px) {
+            .trilha-board { gap: 20px; }
+            .autor-retrato img { width: 230px; height: 129px; }
+            .autor-retrato h3 { width: 220px; }
+            .conclusao-tela { padding: 22px 4vw; }
+            .autor-conclusao img { width: 350px; height: 196px; }
+        }
+        @media (max-width: 900px) {
+            .trilha-board { flex-wrap: wrap; gap: 10px;}
+            .autor-conclusao img { width: 210px; height: 118px; }
+            .conclusao-tela { padding: 10px 1vw; }
+        }
+        @media (max-width: 700px) {
+            .trilha-board { flex-direction: column; align-items: center; }
+            .carta-central-area { margin: 16px 0; }
+            .conclusao-tela { padding: 6px 0; }
+            .autor-conclusao img { width: 95vw; height: auto; }
         }
     </style>
 </head>
 <body>
-    <!-- TELA 1: INTRODUÇÃO -->
+    <!-- TELA 1: Apresentação -->
     <div class="intro" id="tela1">
         <h2>Trilha Antirracista: Vozes Negras Que Inspiram</h2>
         <div class="creditos">
@@ -85,47 +351,71 @@
         <button class="btn-comecar" id="btn-comecar">Começar trilha!</button>
     </div>
 
-    <!-- TELA 2: JOGO FASE 1 (adicionada via JS) -->
-    <div class="tela-jogo" id="tela2-jogo"></div>
-    <!-- TELA 3: JOGO FASE 2 (adicionada via JS) -->
-    <div class="tela-jogo2" id="tela3-jogo"></div>
-    <!-- TELA 4: CONCLUSÃO -->
-    <div class="conclusao-tela" id="tela4-conclusao"></div>
-
-    <!-- SONS do jogo (mantenha os arquivos na pasta!) -->
+    <!-- FASE 1 (jogo) -->
+    <div class="tela-jogo" id="tela2-jogo">
+        <div style="padding:10px 0 2px 0;text-align:center;">
+            <h2 style="font-size:2em;color:#234e52;">Fase 1</h2>
+            <p style="font-size:1.19em;color:#222;max-width:670px;margin:0 auto 18px auto;">
+                Encaixe as frases nos autores corretos.<br>
+                Arraste a carta para o autor correspondente.
+            </p>
+        </div>
+        <div class="trilha-board" id="trilha-board"></div>
+        <div class="carta-central-area">
+            <div class="carta-baralho" id="carta-baralho" draggable="true"></div>
+        </div>
+        <button class="virar-carta-btn" id="virar-carta-btn">
+            <img src="baralho.png" alt="Baralho" style="width:28px;height:40px;vertical-align:middle;margin-right:9px;"> Virar carta!
+        </button>
+        <div class="parabens" id="parabens-msg" style="display:none;">
+            <b>Parabéns!</b> Você completou a primeira etapa da trilha! <br>
+            <button class="continuar-btn" id="btn-continuar-fase2">Continue a trilha!</button>
+        </div>
+    </div>
+    <!-- MODAL: Explicação após acerto -->
+    <div id="modal-contexto">
+        <div id="modal-contento-inner">
+            <div id="modal-contexto-texto"></div>
+            <button id="fechar-modal-contexto" disabled>Fechar (20)</button>
+        </div>
+    </div>
+    <!-- MODAL: Racismo NÃO -->
+    <div id="alerta-racismo">
+        <div id="alerta-racismo-box">
+            <div id="texto-alerta-racismo"></div>
+            <button id="fechar-alerta-racismo">Racismo não!</button>
+        </div>
+    </div>
+    <!-- Sons do jogo -->
     <audio id="success-audio" src="comencaixe.mp3"></audio>
     <audio id="erro-audio" src="semencaixe.mp3"></audio>
     <audio id="virarcarta-audio" src="cartavirando.mp3"></audio>
-
-    <!-- MODAL DE CONTEXTO (acerto) -->
-    <div id="modal-contexto" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(30,41,59,0.85); z-index:9999; align-items:center; justify-content:center;">
-        <div id="modal-contento-inner" style="background:#fff; border-radius:22px; max-width:650px; min-width:340px; padding:32px 28px; box-shadow:0 8px 40px #0004; font-size:1.34em; color:#222; text-align:left; position:relative;">
-            <div id="modal-contexto-texto"></div>
-            <button id="fechar-modal-contexto" style="margin-top:28px; font-size:1.1em; padding:8px 24px; background:#38b2ac; color:#fff; border:none; border-radius:8px; cursor:not-allowed; opacity:0.5;">Fechar (20)</button>
+    <!-- TELA 3: FASE 2 -->
+    <div class="tela-jogo" id="tela3-jogo" style="display:none;">
+        <div style="padding:10px 0 2px 0;text-align:center;">
+            <h2 style="font-size:2em;color:#234e52;">Fase 2</h2>
+            <p style="font-size:1.19em;color:#222;max-width:670px;margin:0 auto 18px auto;">
+                Segunda parte da trilha! Novos autores e frases.<br>
+                Arraste a carta para o autor correto.
+            </p>
+        </div>
+        <div class="trilha-board" id="trilha-board-2"></div>
+        <div class="carta-central-area">
+            <div class="carta-baralho" id="carta-baralho-2" draggable="true"></div>
+        </div>
+        <button class="virar-carta-btn" id="virar-carta-btn-2">
+            <img src="baralho.png" alt="Baralho" style="width:28px;height:40px;vertical-align:middle;margin-right:9px;"> Virar carta!
+        </button>
+        <div class="parabens" id="parabens-msg-2" style="display:none;">
+            <b>Parabéns!</b> Você completou a trilha inteira!<br>
+            <button class="continuar-btn" id="btn-ver-mural">Ver mural final</button>
         </div>
     </div>
-    <!-- MODAL DE RACISMO (erro) -->
-    <div id="alerta-racismo" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(39,21,21,0.75); z-index:9999; align-items:center; justify-content:center;">
-        <div style="background:#fff6e1; border-radius:22px; max-width:700px; min-width:310px; padding:46px 32px 38px 32px; box-shadow:0 8px 40px #0005; font-size:1.45em; color:#a83232; text-align:left; position:relative; border:5px solid #d69e2e;">
-            <b style="font-size:1.25em; color:#c53030; display:block; margin-bottom:16px;">Atenção!</b>
-            <span id="texto-alerta-racismo"></span>
-            <button id="fechar-alerta-racismo" style="display:block;margin:40px auto 0 auto; background:#c53030; color:#fff; border:none; font-size:1.15em; font-weight:bold; border-radius:12px; padding:12px 44px; cursor:pointer;">Racismo não!</button>
-        </div>
-    </div>
-
-<!-- JS virá nas próximas partes! -->
+    <!-- TELA 4: Conclusão/Mural -->
+    <div class="conclusao-tela" id="tela4-conclusao" style="display:none;"></div>
 <script>
-// --- SÓ navegação inicial (o resto do JS virá na PARTE 2) ---
-document.getElementById('btn-comecar').onclick = function() {
-    document.getElementById('tela1').style.display = 'none';
-    document.getElementById('tela1-bemvindo').style.display = 'none';
-    document.getElementById('tela2-jogo').style.display = 'block';
-    window.scrollTo(0,0);
-};
-</script>
-<script>
-// --------- DADOS DOS AUTORES (DIVIDIDO EM 2 FASES) ---------
-const autoresFase1 = [
+/* ------ DADOS DOS AUTORES E FRASES ------- */
+const autores = [
     {
         nome: "Carolina Maria de Jesus",
         img: "carolina.png",
@@ -167,251 +457,7 @@ const autoresFase1 = [
             "Lima Barreto nunca escondeu suas origens, e sempre deixou claro o quanto a aparência negra era motivo de julgamento. Sua literatura traz, de forma crua, a experiência do negro que é acusado e condenado pelo simples fato de existir e ocupar espaços onde poucos esperam vê-lo.",
             "Ao escrever sobre a própria trajetória, Lima Barreto deixa claro como a cor da pele influenciou o reconhecimento (ou a falta dele) na sociedade. Ele sabia que muitos dos seus méritos seriam mais valorizados se fosse branco. Com essa frase, escancarou a barreira do preconceito e denunciou o racismo estrutural da elite brasileira."
         ]
-    }
-];
-// --- Frases de racismo para pop-up de erro (use seu banco completo!)
-const frasesRacismo = [
-"Racismo estrutural – O preconceito não é só individual; está embutido nas instituições, nas leis, nos costumes e até na economia.",
-"“Não existe racismo no Brasil” – Muita gente fala isso, mas é só abrir os olhos: a desigualdade racial está em todo lugar.",
-"Preto parado é suspeito, correndo é ladrão – Frase triste, mas retrata o racismo cotidiano da abordagem policial.",
-"Dados do IBGE (2022): Negros (pretos e pardos) representam 56% da população, mas só 28% dos cargos de chefia no Brasil.",
-// ...adicione mais frases do seu banco se quiser!
-];
-
-// ------- FASE 1 --------
-function criarFase1() {
-    const tela2 = document.getElementById('tela2-jogo');
-    tela2.innerHTML = ''; // limpa
-
-    // Monta autores (retratos e espaços para encaixar frases)
-    let html = `
-        <div style="padding:10px 0 2px 0;text-align:center;">
-            <h2 style="font-size:2em;color:#234e52;">Fase 1: Quem disse isso?</h2>
-            <p style="font-size:1.19em;color:#222;max-width:670px;margin:0 auto 18px auto;">
-                Arraste a carta para o autor correto e complete a trilha. São 9 frases para 3 autores!
-            </p>
-        </div>
-        <div class="trilha-board" id="trilha-board-f1"></div>
-        <div class="carta-central-area">
-            <div class="carta-baralho" id="carta-baralho-f1" draggable="true"></div>
-        </div>
-        <button class="virar-carta-btn" id="virar-carta-btn-f1">
-            <img src="baralho.png" alt="Baralho" style="width:28px;height:40px;vertical-align:middle;margin-right:9px;"> Virar carta!
-        </button>
-        <div class="parabens" id="parabens-msg-f1" style="display:none;">
-            <b>Parabéns!</b> Você completou a primeira etapa da Trilha Antirracista! <br>
-            <button class="continuar-btn" id="btn-continuar-fase2">Continue a trilha!</button>
-        </div>
-    `;
-    tela2.innerHTML = html;
-    montarTrilhaFase1();
-    iniciarDragDropFase1();
-}
-criarFase1();
-
-// --- monta a trilha com retratos e quadrados
-function montarTrilhaFase1() {
-    const trilhaBoard = document.getElementById("trilha-board-f1");
-    trilhaBoard.innerHTML = '';
-    autoresFase1.forEach((autor, aidx) => {
-        let elAutor = document.createElement("div");
-        elAutor.className = "autor-retrato";
-        elAutor.innerHTML = `
-            <img src="${autor.img}" alt="Retrato de ${autor.nome}" style="width:320px;height:180px;object-fit:contain;">
-            <h3>${autor.nome}</h3>
-        `;
-        trilhaBoard.appendChild(elAutor);
-
-        let espacos = document.createElement("div");
-        espacos.className = "trilha-espacos";
-        for (let i = 0; i < 3; i++) {
-            let quad = document.createElement("div");
-            quad.className = "trilha-quadrado";
-            quad.dataset.autor = aidx;
-            quad.dataset.idx = i;
-            espacos.appendChild(quad);
-        }
-        trilhaBoard.appendChild(espacos);
-    });
-}
-
-// --- frases embaralhadas
-let frasesArrF1 = [];
-autoresFase1.forEach((autor, aidx) => {
-    autor.frases.forEach((frase, fidx) => {
-        frasesArrF1.push({
-            frase: frase,
-            autorIdx: aidx,
-            fraseIdx: fidx
-        });
-    });
-});
-frasesArrF1 = frasesArrF1.sort(() => Math.random() - 0.5);
-
-let cartaAtualF1 = null;
-let idxCartaF1 = 0;
-let bloqueadoF1 = false;
-let respostasFinalF1 = [[],[],[]];
-
-// --- Mostra carta
-function mostraBaralhoF1() {
-    const cartaBaralho = document.getElementById("carta-baralho-f1");
-    const btnVirar = document.getElementById("virar-carta-btn-f1");
-    cartaBaralho.innerHTML = `<img src="baralho.png" alt="Baralho" style="width:80px;height:120px;opacity:0.92;">`;
-    cartaBaralho.classList.add("show");
-    cartaBaralho.setAttribute("draggable", true);
-    btnVirar.style.display = "block";
-}
-mostraBaralhoF1();
-
-// --- Virar carta (mostrar frase)
-document.getElementById("virar-carta-btn-f1").onclick = function () {
-    if (bloqueadoF1) return;
-    if (idxCartaF1 >= frasesArrF1.length) return;
-    let atual = frasesArrF1[idxCartaF1];
-    document.getElementById('virarcarta-audio').currentTime = 0;
-    document.getElementById('virarcarta-audio').play();
-    cartaAtualF1 = atual;
-    document.getElementById("carta-baralho-f1").innerHTML = `<div style="margin-bottom:6px;"><img src="baralho.png" alt="Baralho" style="width:36px;height:52px;opacity:0.55;"></div>${atual.frase}`;
-    document.getElementById("carta-baralho-f1").classList.add("show");
-    document.getElementById("carta-baralho-f1").setAttribute("draggable", true);
-    this.style.display = "none";
-};
-
-/* -------- DRAG & DROP para desktop -------- */
-document.getElementById("carta-baralho-f1").addEventListener('dragstart', function (e) {
-    if (!cartaAtualF1 || bloqueadoF1) e.preventDefault();
-    this.classList.add('dragging');
-});
-document.getElementById("carta-baralho-f1").addEventListener('dragend', function (e) {
-    this.classList.remove('dragging');
-});
-document.querySelectorAll('.trilha-quadrado').forEach(quad => {
-    quad.addEventListener('dragover', function (e) {
-        if (!cartaAtualF1 || bloqueadoF1) return;
-        e.preventDefault();
-        this.classList.add('active');
-    });
-    quad.addEventListener('dragleave', function (e) {
-        this.classList.remove('active');
-    });
-    quad.addEventListener('drop', function (e) {
-        this.classList.remove('active');
-        if (!cartaAtualF1 || bloqueadoF1) return;
-        let autorAlvo = Number(this.dataset.autor);
-        if (autorAlvo === cartaAtualF1.autorIdx && !this.classList.contains('filled')) {
-            this.classList.add('filled');
-            this.innerHTML = "";
-            document.getElementById('success-audio').currentTime = 0;
-            document.getElementById('success-audio').play();
-            showModalContextoF1(cartaAtualF1.frase, autoresFase1[autorAlvo].contextos[cartaAtualF1.fraseIdx]);
-            if (!respostasFinalF1[autorAlvo]) respostasFinalF1[autorAlvo] = [];
-            respostasFinalF1[autorAlvo].push({ frase: cartaAtualF1.frase, contexto: autoresFase1[autorAlvo].contextos[cartaAtualF1.fraseIdx] });
-            cartaAtualF1 = null;
-            document.getElementById("carta-baralho-f1").classList.remove("show");
-            idxCartaF1++;
-            setTimeout(() => {
-                if (idxCartaF1 < frasesArrF1.length) mostraBaralhoF1();
-                else document.getElementById('parabens-msg-f1').style.display = 'block';
-            }, 700);
-        } else {
-            document.getElementById('erro-audio').currentTime = 0;
-            document.getElementById('erro-audio').play();
-            exibirAlertaRacismoF1();
-        }
-    });
-});
-
-// --- MODAL DE CONTEXTO (ACERTO) FASE 1 ---
-function showModalContextoF1(frase, contexto) {
-    bloqueadoF1 = true;
-    document.getElementById('modal-contexto-texto').innerHTML =
-        `<div class="frase-modal" style="font-size:1.22em;color:#234e52;font-weight:bold;background:#fffbea; border-left:7px solid #ecc94b;margin-bottom:18px;padding:10px 15px;border-radius:18px;">"${frase}"</div>
-        <div style="font-size:1.08em;">${contexto}</div>`;
-    document.getElementById('modal-contexto').style.display = 'flex';
-    let fecharBtn = document.getElementById('fechar-modal-contexto');
-    fecharBtn.disabled = true;
-    fecharBtn.classList.remove("enabled");
-    fecharBtn.innerText = 'Fechar (20)';
-    let tempo = 20;
-    let modalTimeout = setInterval(() => {
-        tempo--;
-        fecharBtn.innerText = `Fechar (${tempo})`;
-        if (tempo <= 0) {
-            clearInterval(modalTimeout);
-            fecharBtn.disabled = false;
-            fecharBtn.classList.add("enabled");
-            fecharBtn.innerText = 'Fechar';
-        }
-    }, 1000);
-    fecharBtn.onclick = function() {
-        if (!fecharBtn.disabled) {
-            document.getElementById('modal-contexto').style.display = 'none';
-            bloqueadoF1 = false;
-        }
-    }
-}
-
-// --- MODAL RACISMO FASE 1 ---
-function exibirAlertaRacismoF1() {
-    if (window.__alerta_ativo) return;
-    window.__alerta_ativo = true;
-    let idx = Math.floor(Math.random() * frasesRacismo.length);
-    document.getElementById('texto-alerta-racismo').innerHTML = frasesRacismo[idx];
-    document.getElementById('alerta-racismo').style.display = 'flex';
-    bloqueadoF1 = true;
-    document.getElementById('fechar-alerta-racismo').onclick = function() {
-        document.getElementById('alerta-racismo').style.display = 'none';
-        bloqueadoF1 = false;
-        window.__alerta_ativo = false;
-    }
-}
-
-// ----------- TRANSIÇÃO PARA FASE 2 -----------
-document.addEventListener('click', function(e) {
-    if (e.target && e.target.id === 'btn-continuar-fase2') {
-        document.getElementById('tela2-jogo').style.display = 'none';
-        document.getElementById('tela3-jogo').style.display = 'block';
-        criarFase2(); // Vai chamar a Fase 2 (vem na Parte 3!)
-        window.scrollTo(0,0);
-    }
-});
-</script>
-</html>
-<!-- FASE 2 E MURAL FINAL -->
-<div class="tela-jogo" id="tela3-jogo" style="display:none;">
-    <div style="padding:10px 0 2px 0;text-align:center;">
-        <h2 style="font-size:2em;color:#234e52;">Fase 2: Continue a trilha!</h2>
-        <p style="font-size:1.19em;color:#222;max-width:670px;margin:0 auto 18px auto;">
-            Agora mais 3 grandes autores! Complete os 9 quadrados com suas frases.<br>
-            Arraste a carta para o autor correto.
-        </p>
-    </div>
-    <div class="trilha-board" id="trilha-board-f2"></div>
-    <div class="carta-central-area">
-        <div class="carta-baralho" id="carta-baralho-f2" draggable="true"></div>
-    </div>
-    <button class="virar-carta-btn" id="virar-carta-btn-f2">
-        <img src="baralho.png" alt="Baralho" style="width:28px;height:40px;vertical-align:middle;margin-right:9px;"> Virar carta!
-    </button>
-    <div class="parabens" id="parabens-msg-f2" style="display:none;">
-        <b>Parabéns!</b> Você completou a Trilha Antirracista! <br>
-        Veja o mural com todas as frases e histórias.<br>
-        <button class="continuar-btn" id="btn-finalizar-mural">Ver mural</button>
-    </div>
-</div>
-<div class="conclusao-tela" id="tela-final-mural" style="display:none;"></div>
-
-<!-- MODAL DE RACISMO (COMPARTILHADO ENTRE AS DUAS FASES) -->
-<div id="alerta-racismo" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9000;justify-content:center;align-items:center;background:rgba(0,0,0,0.72)">
-    <div style="background:#fff;padding:36px 34px 28px 34px;max-width:540px;border-radius:28px;box-shadow:0 8px 40px #0006;">
-        <div id="texto-alerta-racismo" style="color:#c53030;font-size:1.2em;margin-bottom:24px;line-height:1.3;font-weight:bold;"></div>
-        <button id="fechar-alerta-racismo" style="background:#234e52;color:#fff;padding:14px 38px;border:none;border-radius:14px;font-size:1.15em;font-weight:bold;cursor:pointer;">Racismo Não!</button>
-    </div>
-</div>
-<script>
-// --------- AUTORES FASE 2 ---------
-const autoresFase2 = [
+    },
     {
         nome: "Djamila Ribeiro",
         img: "djamila.png",
@@ -455,84 +501,137 @@ const autoresFase2 = [
         ]
     }
 ];
+/* --- FRASES DE RACISMO/TERMOS PARA ALERTA --- */
+const termosRacismo = [
+"Racismo estrutural – O preconceito não é só individual; está embutido nas instituições, nas leis, nos costumes e até na economia.",
+"“Não existe racismo no Brasil” – Muita gente fala isso, mas é só abrir os olhos: a desigualdade racial está em todo lugar.",
+"Preto parado é suspeito, correndo é ladrão – Frase triste, mas retrata o racismo cotidiano da abordagem policial.",
+"Dados do IBGE (2022): Negros (pretos e pardos) representam 56% da população, mas só 28% dos cargos de chefia no Brasil.",
+"Diferença salarial: Pessoas negras recebem, em média, cerca de 56% do salário das pessoas brancas, segundo o IBGE.",
+// ... coloque todas as frases/termos de racismo que quiser aqui...
+"Negros em cargos de confiança: A proporção é muito baixa nas empresas brasileiras.",
+"Racismo não é opinião. É crime! Esteja atento, denuncie e seja parte da mudança."
+];
 
-// --- FASE 2 ---
-function criarFase2() {
-    // Monta autores Fase 2 (retratos e espaços)
-    let trilhaBoard = document.getElementById("trilha-board-f2");
-    trilhaBoard.innerHTML = '';
-    autoresFase2.forEach((autor, aidx) => {
+/* -------------- TELAS & FASES ------------- */
+const tela1 = document.getElementById('tela1');
+const tela1b = document.getElementById('tela1-bemvindo');
+const tela2 = document.getElementById('tela2-jogo');
+const tela3 = document.getElementById('tela3-jogo');
+const tela4 = document.getElementById('tela4-conclusao');
+let faseAtual = 1;
+document.getElementById('btn-comecar').onclick = function() {
+    tela1.style.display = 'none';
+    tela1b.style.display = 'none';
+    tela2.style.display = 'block';
+    montarTrilha(0, 3, "trilha-board", "carta-baralho", "virar-carta-btn", fase1Callback);
+    window.scrollTo(0,0);
+}
+/* ----------- FASE 1: autores 0,1,2 ------------ */
+let respostasFinal = [[],[],[],[],[],[]];
+function fase1Callback(){
+    document.getElementById('parabens-msg').style.display = 'block';
+    document.getElementById('btn-continuar-fase2').onclick = function(){
+        tela2.style.display = 'none';
+        tela3.style.display = 'block';
+        faseAtual = 2;
+        montarTrilha(3, 6, "trilha-board-2", "carta-baralho-2", "virar-carta-btn-2", fase2Callback);
+        window.scrollTo(0,0);
+    }
+}
+function fase2Callback(){
+    document.getElementById('parabens-msg-2').style.display = 'block';
+    document.getElementById('btn-ver-mural').onclick = function(){
+        tela3.style.display = 'none';
+        tela4.style.display = 'block';
+        mostrarConclusao();
+        window.scrollTo(0,0);
+    }
+}
+/* --------- GERA TRILHA DA FASE (AUTOR INICIO/FIM) -------- */
+function montarTrilha(inicio, fim, idBoard, idCarta, idBtn, callbackFim){
+    // Reset
+    document.getElementById(idBoard).innerHTML = '';
+    let autoresFase = autores.slice(inicio, fim);
+    // Cria autores e espaços
+    autoresFase.forEach((autor, aidx) => {
+        let realIdx = inicio + aidx;
         let elAutor = document.createElement("div");
         elAutor.className = "autor-retrato";
         elAutor.innerHTML = `
-            <img src="${autor.img}" alt="Retrato de ${autor.nome}" style="width:320px;height:180px;object-fit:contain;">
+            <img src="${autor.img}" alt="Retrato de ${autor.nome}">
             <h3>${autor.nome}</h3>
         `;
-        trilhaBoard.appendChild(elAutor);
+        document.getElementById(idBoard).appendChild(elAutor);
 
         let espacos = document.createElement("div");
         espacos.className = "trilha-espacos";
         for (let i = 0; i < 3; i++) {
             let quad = document.createElement("div");
             quad.className = "trilha-quadrado";
-            quad.dataset.autor = aidx;
+            quad.dataset.autor = realIdx;
             quad.dataset.idx = i;
             espacos.appendChild(quad);
         }
-        trilhaBoard.appendChild(espacos);
+        document.getElementById(idBoard).appendChild(espacos);
     });
-
-    // Frases embaralhadas
+    // Prepara cartas dessa fase
     let frasesArr = [];
-    autoresFase2.forEach((autor, aidx) => {
-        autor.frases.forEach((frase, fidx) => {
+    for(let a=0; a<autoresFase.length; a++) {
+        autoresFase[a].frases.forEach((frase, fidx) => {
             frasesArr.push({
                 frase: frase,
-                autorIdx: aidx,
+                autorIdx: inicio + a,
                 fraseIdx: fidx
             });
         });
-    });
-    frasesArr = frasesArr.sort(() => Math.random() - 0.5);
-
+    }
+    frasesArr = frasesArr.sort(()=>Math.random()-0.5);
     let cartaAtual = null;
     let idxCarta = 0;
     let bloqueado = false;
-    let respostasFinal = [[],[],[]];
 
-    // Mostra carta
+    // SONS
+    const audioAcerto = document.getElementById('success-audio');
+    const audioErro = document.getElementById('erro-audio');
+    const audioVirar = document.getElementById('virarcarta-audio');
+
+    // Mostra baralho
+    const cartaBaralho = document.getElementById(idCarta);
+    const btnVirarCarta = document.getElementById(idBtn);
     function mostraBaralho() {
-        let cartaBaralho = document.getElementById("carta-baralho-f2");
-        let btnVirar = document.getElementById("virar-carta-btn-f2");
         cartaBaralho.innerHTML = `<img src="baralho.png" alt="Baralho" style="width:80px;height:120px;opacity:0.92;">`;
         cartaBaralho.classList.add("show");
-        cartaBaralho.setAttribute("draggable", true);
-        btnVirar.style.display = "block";
+        cartaBaralho.setAttribute("draggable", false);
+        btnVirarCarta.style.display = "block";
     }
     mostraBaralho();
 
-    document.getElementById("virar-carta-btn-f2").onclick = function () {
+    btnVirarCarta.onclick = function () {
         if (bloqueado) return;
         if (idxCarta >= frasesArr.length) return;
         let atual = frasesArr[idxCarta];
-        document.getElementById('virarcarta-audio').currentTime = 0;
-        document.getElementById('virarcarta-audio').play();
+        audioVirar.currentTime = 0;
+        audioVirar.play();
         cartaAtual = atual;
-        document.getElementById("carta-baralho-f2").innerHTML = `<div style="margin-bottom:6px;"><img src="baralho.png" alt="Baralho" style="width:36px;height:52px;opacity:0.55;"></div>${atual.frase}`;
-        document.getElementById("carta-baralho-f2").classList.add("show");
-        document.getElementById("carta-baralho-f2").setAttribute("draggable", true);
-        this.style.display = "none";
+        cartaBaralho.innerHTML = `<div style="margin-bottom:6px;"><img src="baralho.png" alt="Baralho" style="width:36px;height:52px;opacity:0.55;"></div>${atual.frase}`;
+        cartaBaralho.classList.add("show");
+        cartaBaralho.setAttribute("draggable", true);
+        btnVirarCarta.style.display = "none";
     };
 
-    document.getElementById("carta-baralho-f2").addEventListener('dragstart', function (e) {
+    cartaBaralho.addEventListener('dragstart', function (e) {
         if (!cartaAtual || bloqueado) e.preventDefault();
         this.classList.add('dragging');
     });
-    document.getElementById("carta-baralho-f2").addEventListener('dragend', function (e) {
+    cartaBaralho.addEventListener('dragend', function (e) {
         this.classList.remove('dragging');
     });
 
-    document.querySelectorAll('#trilha-board-f2 .trilha-quadrado').forEach(quad => {
+    function playAcerto() { audioAcerto.currentTime=0; audioAcerto.play(); }
+    function playErro() { audioErro.currentTime=0; audioErro.play(); }
+
+    document.querySelectorAll(`#${idBoard} .trilha-quadrado`).forEach(quad => {
         quad.addEventListener('dragover', function (e) {
             if (!cartaAtual || bloqueado) return;
             e.preventDefault();
@@ -547,114 +646,89 @@ function criarFase2() {
             let autorAlvo = Number(this.dataset.autor);
             if (autorAlvo === cartaAtual.autorIdx && !this.classList.contains('filled')) {
                 this.classList.add('filled');
-                this.innerHTML = "";
-                document.getElementById('success-audio').currentTime = 0;
-                document.getElementById('success-audio').play();
-                showModalContextoF2(cartaAtual.frase, autoresFase2[autorAlvo].contextos[cartaAtual.fraseIdx]);
+                this.innerHTML = ""; // X
+                playAcerto();
+                showModalContexto(cartaAtual.frase, autores[autorAlvo].contextos[cartaAtual.fraseIdx]);
                 if (!respostasFinal[autorAlvo]) respostasFinal[autorAlvo] = [];
-                respostasFinal[autorAlvo].push({ frase: cartaAtual.frase, contexto: autoresFase2[autorAlvo].contextos[cartaAtual.fraseIdx] });
+                respostasFinal[autorAlvo].push({ frase: cartaAtual.frase, contexto: autores[autorAlvo].contextos[cartaAtual.fraseIdx] });
                 cartaAtual = null;
-                document.getElementById("carta-baralho-f2").classList.remove("show");
+                cartaBaralho.classList.remove("show");
                 idxCarta++;
                 setTimeout(() => {
                     if (idxCarta < frasesArr.length) mostraBaralho();
-                    else document.getElementById('parabens-msg-f2').style.display = 'block';
+                    else callbackFim();
                 }, 700);
             } else {
-                document.getElementById('erro-audio').currentTime = 0;
-                document.getElementById('erro-audio').play();
-                exibirAlertaRacismoF2();
+                playErro();
+                showAlertaRacismo();
             }
         });
     });
+}
 
-    // MODAL DE CONTEXTO (ACERTO) FASE 2
-    function showModalContextoF2(frase, contexto) {
-        bloqueado = true;
-        document.getElementById('modal-contexto-texto').innerHTML =
-            `<div class="frase-modal" style="font-size:1.22em;color:#234e52;font-weight:bold;background:#fffbea; border-left:7px solid #ecc94b;margin-bottom:18px;padding:10px 15px;border-radius:18px;">"${frase}"</div>
-            <div style="font-size:1.08em;">${contexto}</div>`;
-        document.getElementById('modal-contexto').style.display = 'flex';
-        let fecharBtn = document.getElementById('fechar-modal-contexto');
-        fecharBtn.disabled = true;
-        fecharBtn.classList.remove("enabled");
-        fecharBtn.innerText = 'Fechar (20)';
-        let tempo = 20;
-        let modalTimeout = setInterval(() => {
-            tempo--;
-            fecharBtn.innerText = `Fechar (${tempo})`;
-            if (tempo <= 0) {
-                clearInterval(modalTimeout);
-                fecharBtn.disabled = false;
-                fecharBtn.classList.add("enabled");
-                fecharBtn.innerText = 'Fechar';
-            }
-        }, 1000);
-        fecharBtn.onclick = function() {
-            if (!fecharBtn.disabled) {
-                document.getElementById('modal-contexto').style.display = 'none';
-                bloqueado = false;
-            }
+/* ---- MODAL FRASE/CONTEXTOS (acerto) ---- */
+const modal = document.getElementById('modal-contexto');
+const modalTexto = document.getElementById('modal-contexto-texto');
+const fecharModalBtn = document.getElementById('fechar-modal-contexto');
+let modalTimeout = null;
+function showModalContexto(frase, contexto) {
+    modalTexto.innerHTML =
+        `<div class="frase-modal">"${frase}"</div><div>${contexto}</div>`;
+    modal.style.display = 'flex';
+    fecharModalBtn.disabled = true;
+    fecharModalBtn.classList.remove("enabled");
+    fecharModalBtn.innerText = 'Fechar (20)';
+    let tempo = 20;
+    modalTimeout = setInterval(() => {
+        tempo--;
+        fecharModalBtn.innerText = `Fechar (${tempo})`;
+        if (tempo <= 0) {
+            clearInterval(modalTimeout);
+            fecharModalBtn.disabled = false;
+            fecharModalBtn.classList.add("enabled");
+            fecharModalBtn.innerText = 'Fechar';
         }
+    }, 1000);
+}
+fecharModalBtn.addEventListener('click', () => {
+    if (!fecharModalBtn.disabled) {
+        modal.style.display = 'none';
     }
+});
 
-    // MODAL RACISMO FASE 2
-    function exibirAlertaRacismoF2() {
-        if (window.__alerta_ativo) return;
-        window.__alerta_ativo = true;
-        let idx = Math.floor(Math.random() * frasesRacismo.length);
-        document.getElementById('texto-alerta-racismo').innerHTML = frasesRacismo[idx];
-        document.getElementById('alerta-racismo').style.display = 'flex';
-        bloqueado = true;
-        document.getElementById('fechar-alerta-racismo').onclick = function() {
-            document.getElementById('alerta-racismo').style.display = 'none';
-            bloqueado = false;
-            window.__alerta_ativo = false;
-        }
-    }
+/* ---- MODAL RACISMO NÃO (erro) ---- */
+const alertaRacismo = document.getElementById('alerta-racismo');
+const textoAlertaRacismo = document.getElementById('texto-alerta-racismo');
+const fecharAlertaRacismo = document.getElementById('fechar-alerta-racismo');
+function showAlertaRacismo(){
+    // Sorteia um termo para exibir
+    const frase = termosRacismo[Math.floor(Math.random() * termosRacismo.length)];
+    textoAlertaRacismo.innerHTML = frase;
+    alertaRacismo.style.display = 'flex';
+}
+fecharAlertaRacismo.onclick = function() {
+    alertaRacismo.style.display = 'none';
+};
 
-    // FINALIZAÇÃO/MURAL FINAL
-    document.getElementById('btn-finalizar-mural').onclick = function() {
-        document.getElementById('tela3-jogo').style.display = 'none';
-        document.getElementById('tela-final-mural').style.display = 'block';
-        mostrarConclusaoMural();
-        window.scrollTo(0,0);
-    };
-
-    // Exibe mural final (TODOS autores, frases e respostas)
-    function mostrarConclusaoMural() {
-        let html = `<h2 style="text-align:center;margin-bottom:18px;color:#234e52;">Mural da Trilha Antirracista</h2>`;
-        // Fase 1 autores
-        autoresFase1.forEach((autor, aidx) => {
-            html += `
-            <div class="autor-conclusao">
-                <img src="${autor.img}" alt="${autor.nome}">
-                <div class="autor-conclusao-info">
-                    <h3>${autor.nome}</h3>
-                    ${(autor.frases||[]).map((frase,ix)=>`
-                        <div class="frase-concluida">${frase}</div>
-                        <div class="explica">${autor.contextos[ix]}</div>
-                    `).join('')}
-                </div>
+/* ---------- MURAL FINAL/CONCLUSÃO ------------ */
+function mostrarConclusao() {
+    let html = `<h2 style="text-align:center;margin-bottom:18px;color:#234e52;">Mural da Trilha Antirracista</h2>`;
+    autores.forEach((autor, aidx) => {
+        html += `
+        <div class="autor-conclusao">
+            <img src="${autor.img}" alt="${autor.nome}">
+            <div class="autor-conclusao-info">
+                <h3>${autor.nome}</h3>
+                ${(respostasFinal[aidx]||[]).map((item,ix)=>`
+                    <div class="frase-concluida">${item.frase}</div>
+                    <div class="explica">${item.contexto}</div>
+                `).join('')}
             </div>
-            `;
-        });
-        // Fase 2 autores
-        autoresFase2.forEach((autor, aidx) => {
-            html += `
-            <div class="autor-conclusao">
-                <img src="${autor.img}" alt="${autor.nome}">
-                <div class="autor-conclusao-info">
-                    <h3>${autor.nome}</h3>
-                    ${(autor.frases||[]).map((frase,ix)=>`
-                        <div class="frase-concluida">${frase}</div>
-                        <div class="explica">${autor.contextos[ix]}</div>
-                    `).join('')}
-                </div>
-            </div>
-            `;
-        });
-        document.getElementById('tela-final-mural').innerHTML = html;
-    }
+        </div>
+        `;
+    });
+    tela4.innerHTML = html;
 }
 </script>
+</body>
+</html>
